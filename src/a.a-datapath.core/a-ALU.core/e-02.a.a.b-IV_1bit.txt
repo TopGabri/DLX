@@ -1,1 +1,1 @@
-This file indicates the presence, at this point of the structure, of "02.a.a-b-IV_1bit.txt" and all of its subcomponents
+This file indicates the presence, at this point of the structure, of "02.a.a-b-IV_1bit.vhd" and all of its subcomponents

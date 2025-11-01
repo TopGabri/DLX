@@ -11,26 +11,26 @@ entity DATAPATH is
         Clk, Rst : in std_logic;
         -- ## REGULAR CONTROL SIGNALS
         -- ### DECODE (ID) STAGE CONTROL
-        UIS   : in std_logic;                    -- selects shift or don't shift the immediate by 16 bits leftwards (0: no shift, 1: shift)
-        SUS   : in std_logic;                    -- selects to consider the immediate as signed or unsigned (0: signed, 1: unsigned)
-        SES   : in std_logic;                    -- selects the right sign-extension of the immediate ( 0: 16 -> 32, 1: 26 -> 32)
-        RF1   : in std_logic;                    -- enables the read port 1 of the register file
-        RF2   : in std_logic;                    -- enables the read port 2 of the register file
-        JUMPS : in std_logic;                    -- selects correct target address for jump instructions
+        UIS   : in std_logic; -- selects shift or don't shift the immediate by 16 bits leftwards (0: no shift, 1: shift)
+        SUS   : in std_logic; -- selects to consider the immediate as signed or unsigned (0: signed, 1: unsigned)
+        SES   : in std_logic; -- selects the right sign-extension of the immediate ( 0: 16 -> 32, 1: 26 -> 32)
+        RF1   : in std_logic; -- enables the read port 1 of the register file
+        RF2   : in std_logic; -- enables the read port 2 of the register file
+        JUMPS : in std_logic; -- selects correct target address for jump instructions
         -- ### EXECUTE (EXE) STAGE CONTROL
-        BS    : in std_logic;                    -- selects the input B of the ALU (0: out2, 1: imm)
-        AS    : in std_logic;                    -- selects the input A of the ALU (0: out1, 1: NPC)
-        CNDS  : in std_logic_vector(1 downto 0); -- selects the COND register input (00: 0 (normal behavior), 01: 1 (jump), 10: out1==0, 11: out1!=0) 
-        ALUS  : in aluOp;                        -- alu control bits
+        BS   : in std_logic;                    -- selects the input B of the ALU (0: out2, 1: imm)
+        AS   : in std_logic;                    -- selects the input A of the ALU (0: out1, 1: NPC)
+        CNDS : in std_logic_vector(1 downto 0); -- selects the COND register input (00: 0 (normal behavior), 01: 1 (jump), 10: out1==0, 11: out1!=0) 
+        ALUS : in aluOp;                        -- alu control bits
         -- ### MEMORY (MEM) STAGE CONTROL
         DMS   : in std_logic;                    -- selects between a signed (1) or unsigned (0) value from memory
         DMB   : in std_logic_vector(1 downto 0); -- selects the number of bytes for the memory operation
         RnW   : in std_logic;                    -- enables read or write of data memory
         DM_EN : in std_logic;                    -- enables the data memory
         -- ### WRITE BACK (WB) STAGE CONTROL
-        WBS   : in std_logic_vector(1 downto 0); -- selects output to be written back (00: LMD, 01: ALU_out, 10: PC_INCR)
-        WRF   : in std_logic;                    -- enables the write port of the register file
-        RDS   : in std_logic_vector(1 downto 0); -- selects the right bits of the instruction as register destination address (00: RS2, 01: RD, 10: R31)
+        WBS : in std_logic_vector(1 downto 0); -- selects output to be written back (00: LMD, 01: ALU_out, 10: PC_INCR)
+        WRF : in std_logic;                    -- enables the write port of the register file
+        RDS : in std_logic_vector(1 downto 0); -- selects the right bits of the instruction as register destination address (00: RS2, 01: RD, 10: R31)
         -- ## SPECIAL CONTROL SIGNALS
         -- ### PIPELINE REGISTER ENABLE CONTROL SIGNALS
         IFIDEN, IDEXEN, EXMEMEN, MEMWBEN, WBIFEN : in std_logic; -- enable the respective pipeline registers when asserted
@@ -372,11 +372,7 @@ architecture STRUCT of DATAPATH is
     signal RnW_memory_s, enable_memory_s               : std_logic;
 begin
 
-    -- PORT-SIGNAL CONNECTIONS 
-
-    data_in_from_memory <= data_in_from_memory_s;
-    data_out_to_memory  <= data_out_to_memory_s;
-    addr_to_memory      <= addr_to_memory_s;
+    
     --------------------------------------- * START OF DATAPATH PIPELINE * -------------------------------------------
 
     ------------------------------------------------ FETCH (IF) ---------------------------------------------------- 
@@ -392,7 +388,6 @@ begin
 
     -- PC_REG: stores program counter and fetches it to the instruction memory and to the PC_ADDER
     PC : REG generic map(N => ADDR_WIDTH) port map(D => NPC, CLK => Clk, Rst => Rst, EN => WBIFEN, Q => PC_Q);
-
     -- PC_INCR: PC+4
     PC_INCR <= std_logic_vector(unsigned(PC_Q) + 4);
 
@@ -455,6 +450,7 @@ begin
 
     PC_ID_Q <= std_logic_vector(unsigned(PC_INCR_ID_Q) - 4);
     PC_EX_Q <= std_logic_vector(unsigned(PC_INCR_EX_Q) - 4);
+
     -- BHT: Branch History Table
     BRANCH_HISTORY_TABLE : BHT generic map(BHT_SIZE => 16, ADDR_SIZE => 4, FILE_PATH => "bht.mem")
     port map(
@@ -468,6 +464,7 @@ begin
         Prediction_2 => PREDICTION_2  -- EX stage predicted branch outcome 
     );
 
+    PREDICTION <= PREDICTION_1; -- output the prediction signal
     UPDATE_BHT <= CNDS(0) and (not NPC_SEL_RST); -- UPDATE_BHT is asserted when the instruction in EX is a valid branch 
 
     -- SIGN_EXTENDER_I: sign-extender for I-type immediate
@@ -629,12 +626,11 @@ begin
         Y => COND
     );
 
-    DIFF    <= COND xor PREDICTION_2;     -- DIFF is 1 when the prediction != actual outcome
-    MISS    <= DIFF and CNDS(0);          -- BRANCH is 1 when DIFF is 1 and the instruction is a branch (CNDS[0]=1)
+    DIFF    <= COND xor PREDICTION_2;    -- DIFF is 1 when the prediction != actual outcome
+    MISS    <= DIFF and CNDS(0);         -- BRANCH is 1 when DIFF is 1 and the instruction is a branch (CNDS[0]=1)
     NPC_SEL <= MISS and not(NPC_SEL_RST); -- NPC_SEL is 1 when BRANCH=1 and NPC_SEL_RST=0 (not a reset)
-
     FLUSH_REQ <= NPC_SEL; -- FLUSH_REQ is asserted when NPC_SEL is 1 (to correct branch misprediction)
-
+    
     -- MUX_CORRECTED_INSTR_ADDR: chooses between ALU_OUT_D (mispredicted not taken) and PC_INCR_EX_Q (mispredicted taken)
     MUX_CORRECTED_INSTR_ADDR : MUX_2_1 generic map(
         N   => ADDR_WIDTH) port map(
@@ -649,10 +645,10 @@ begin
 
     -- IN_DATA: register containing input data of Data Memory (RF_OUT_2_Q)
     IN_DATA : REG generic map(N => DATA_WIDTH) port map(D => B, CLK => Clk, Rst => Rst, EN => EXMEMEN, Q => IN_DATA_Q);
-
+    
     -- EX_MEM_IR: pipeline register between EX and MEM containing instruction
     EX_MEM_IR : REG generic map(N => INSTRUCTION_WIDTH) port map(D => ID_EX_IR_Q, CLK => Clk, Rst => Rst, EN => EXMEMEN, Q => EX_MEM_IR_Q);
-
+    
     -- PC_INCR_MEM_REG: pipeline register that forwards PC_INCR from EX to MEM stage
     PC_INCR_MEM : REG generic map(N => ADDR_WIDTH) port map(D => PC_INCR_EX_Q, CLK => Clk, Rst => Rst, EN => EXMEMEN, Q => PC_INCR_MEM_Q);
 
@@ -724,7 +720,7 @@ begin
     -- PC_INCR_WB_REG: pipeline register that forwards PC_INCR from MEM to WB stage
     PC_INCR_WB : REG generic map(N => ADDR_WIDTH) port map(D => PC_INCR_MEM_Q, CLK => Clk, Rst => Rst, EN => MEMWBEN, Q => PC_INCR_WB_Q);
 
-    -------------------------------------------------- WRITE BACK (WB)--------------------------------------------------- 
+    -------------------------------------------------- WRITE BACK --------------------------------------------------- 
     -- MUX_WB: chooses the signal to write-back, between LMD_Q, ALU_OUT_2_Q and PC_INCR_WB_Q
     MUX_WB : MUX_4_1 generic map(N => DATA_WIDTH)
     port map(

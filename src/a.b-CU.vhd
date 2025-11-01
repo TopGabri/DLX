@@ -8,8 +8,8 @@ entity Hardwired_CU is
         -- # /* INPUT PORTS*/
 
         -- ## CLOCK AND RESET SIGNALS
-        Clk    : in std_logic;
-        Rst    : in std_logic; -- Active High
+        Clk : in std_logic;
+        Rst : in std_logic; -- Active High
         -- ## OPCODE AND FUNC FIELDS
         OPCODE : in std_logic_vector(OP_CODE_SIZE - 1 downto 0);
         FUNC   : in std_logic_vector(FUNC_SIZE - 1 downto 0);
@@ -18,9 +18,9 @@ entity Hardwired_CU is
         -- ## BRANCH CORRECTION FLUSH REQUEST
         FLUSH_REQ : in std_logic;
         -- ## RAW HAZARD STALL REQUESTS
-        STALL_EX_MEM   : in std_logic;  -- request to stall EX/MEM stage
-        STALL_ID_EX    : in std_logic;  -- request to stall ID/EX stage
-        n_cycles_stall : in integer;    -- number of cycles to stall
+        STALL_EX_MEM   : in std_logic; -- request to stall EX/MEM stage
+        STALL_ID_EX    : in std_logic; -- request to stall ID/EX stage
+        n_cycles_stall : in integer;   -- number of cycles to stall
         -- ## FORWARDING LOGIC SIGNALS 
         fwd : in std_logic_vector(11 downto 0); -- concatenation of all forwarding signals
         -- ## CACHE MISS SIGNAL
@@ -257,8 +257,8 @@ begin
                     when 34 => aluOpcode_i <= "000" & '1' & "0000000";           -- SUB
                     when 35 => aluOpcode_i <= "000" & '1' & "0000000";           -- SUBU (same as SUB)
                     when 36 => aluOpcode_i <= "110" & "000" & "001" & "00";      -- AND
-                    when 37 => aluOpcode_i <= "110" & "000" & "110" & "00";      -- OR
-                    when 38 => aluOpcode_i <= "110" & "000" & "111" & "00";      -- XOR
+                    when 37 => aluOpcode_i <= "110" & "000" & "111" & "00";      -- OR
+                    when 38 => aluOpcode_i <= "110" & "000" & "110" & "00";      -- XOR
                     when 40 => aluOpcode_i <= "101" & '1' & '0' & '1' & "00000"; -- SEQ
                     when 41 => aluOpcode_i <= "101" & '1' & '0' & '0' & "00000"; -- SNE
                     when 42 => aluOpcode_i <= "100" & '1' & '1' & "000000";      -- SLT
@@ -275,8 +275,8 @@ begin
                 -- I-type 
             when 10 | 11 => aluOpcode_i <= "000" & '1' & "0000000";                -- subi | subui => SUB
             when 12      => aluOpcode_i      <= "110" & "000" & "001" & "00";      -- andi => AND
-            when 13      => aluOpcode_i      <= "110" & "000" & "110" & "00";      -- ori => OR
-            when 14      => aluOpcode_i      <= "110" & "000" & "111" & "00";      -- xori => XOR
+            when 13      => aluOpcode_i      <= "110" & "000" & "111" & "00";      -- ori => OR
+            when 14      => aluOpcode_i      <= "110" & "000" & "110" & "00";      -- xori => XOR
             when 20      => aluOpcode_i      <= "111" & "000000" & "10";           -- slli => SLL
             when 22      => aluOpcode_i      <= "111" & "000000" & "00";           -- srli => SRL
             when 23      => aluOpcode_i      <= "111" & "000000" & "01";           -- srai => SRA

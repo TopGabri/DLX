@@ -1,15 +1,11 @@
-library ieee;
-use ieee.std_logic_1164.all;
+library IEEE;
+use IEEE.std_logic_1164.all;
 use WORK.DLX_Types.all;
 
-entity DLX is
-    port (
-        Clk : in std_logic;
-        Rst : in std_logic
-    );
-end DLX;
+entity DATAPATH_TB is
+end DATAPATH_TB;
 
-architecture STRUCTURAL of DLX is
+architecture TBARCH of DATAPATH_TB is
 
     component DATAPATH is
         port (
@@ -70,66 +66,6 @@ architecture STRUCTURAL of DLX is
         );
     end component DATAPATH;
 
-    component Hardwired_CU is
-        port (
-            -- # /* INPUT PORTS*/
-
-            -- ## CLOCK AND RESET SIGNALS
-            Clk : in std_logic;
-            Rst : in std_logic; -- Active High
-            -- ## OPCODE AND FUNC FIELDS
-            OPCODE : in std_logic_vector(OP_CODE_SIZE - 1 downto 0);
-            FUNC   : in std_logic_vector(FUNC_SIZE - 1 downto 0);
-            -- ## BRANCH PREDICTION
-            PREDICTION : in std_logic;
-            -- ## BRANCH CORRECTION FLUSH REQUEST
-            FLUSH_REQ : in std_logic;
-            -- ## RAW HAZARD STALL REQUESTS
-            STALL_EX_MEM   : in std_logic; -- request to stall EX/MEM stage
-            STALL_ID_EX    : in std_logic; -- request to stall ID/EX stage
-            n_cycles_stall : in integer;   -- number of cycles to stall
-            -- ## FORWARDING LOGIC SIGNALS 
-            fwd : in std_logic_vector(11 downto 0); -- concatenation of all forwarding signals
-            -- ## CACHE MISS SIGNAL
-            CACHE_MISS : in std_logic;
-
-            -- # /* OUTPUT PORTS */
-            -- ## REGULAR CONTROL SIGNALS 
-            -- ### DECODE (ID) STAGE CONTROL 
-            UIS   : out std_logic; -- selects to shift or not shift the immediate by 16 bits leftwards (0: no shift, 1: shift)
-            SUS   : out std_logic; -- selects to consider the immediate as signed or unsigned (0: signed, 1: unsigned)
-            SES   : out std_logic; -- selects the right sign-extension of the immediate ( 0: 16 -> 32, 1: 26 -> 32)
-            RF1   : out std_logic; -- enables the read port 1 of the register file
-            RF2   : out std_logic; -- enables the read port 2 of the register file
-            JUMPS : out std_logic; -- selects correct target address for jump instructions
-            -- ### EXECUTE (EXE) STAGE CONTROL
-            BS   : out std_logic;                    -- selects the input B of the ALU (0: out2, 1: imm)
-            AS   : out std_logic;                    -- selects the input A of the ALU (0: out1, 1: NPC)
-            CNDS : out std_logic_vector(1 downto 0); -- selects the COND register input (00: 0 (normal behavior), 01: 1 (jump), 10: out1==0, 11: out1!=0) 
-            ALUS : out aluOp;                        -- selects the ALU operation
-            -- ### MEMORY (MEM) STAGE CONTROL
-            DMS   : out std_logic;                    -- selects between a signed (1) or unsigned (0) value from memory
-            DMB   : out std_logic_vector(1 downto 0); -- selects the number of bytes for the memory operation
-            RnW   : out std_logic;                    -- selects read or write of data memory
-            DM_EN : out std_logic;                    -- enables the data memory
-            -- ### WRITE BACK (WB) STAGE CONTROL
-            WBS : out std_logic_vector(1 downto 0); -- selects output to be written back (00: LMD, 01: ALU_out, 10: PC_INCR)
-            WRF : out std_logic;                    -- enables the write port of the register file
-            RDS : out std_logic_vector(1 downto 0); -- selects the right bits of the instruction as register destination address (00: RS2, 01: RD, 10: R31)
-            -- ## SPECIAL CONTROL SIGNALS
-            -- ### REGISTER ENABLE CONTROL
-            WBIFEN, IFIDEN, IDEXEN, EXMEMEN, MEMWBEN : out std_logic; -- enable the respective pipeline registers when asserted
-            -- ### FORWARDING LOGIC CONTROL
-            FWD_A_SEL, FWD_B_SEL, FWD_DM_SEL, FWD_JR_SEL : out std_logic_vector(1 downto 0); -- select the right forwarding source
-            -- ### JUMP AND BRANCH PREDICTION CONTROL
-            JUMP   : out std_logic; -- do jump
-            BRANCH : out std_logic; -- do branch prediction
-            -- ### BRANCH CORRECTION CONTROL
-            NPC_SEL_RST : out std_logic -- forces NPC_SEL signal to 0 when high
-        );
-    end component Hardwired_CU;
-    
-
     -- DECODE STAGE CONTROL SIGNALS
     signal UIS_s   : std_logic;
     signal SUS_s   : std_logic;
@@ -179,11 +115,48 @@ architecture STRUCTURAL of DLX is
 
     -- CACHE MISS signal
     signal CACHE_MISS_s : std_logic;
-    
+
+    -- Other signals
+    signal Clk, Rst : std_logic;
+
+
+    -- control words
+    signal cw : std_logic_vector(CW_SIZE - 1 downto 0); -- full control word read from cw_mem
+    signal cw2 : std_logic_vector(CW_SIZE - 1 - 6 downto 0);         -- second stage - EX
+    signal cw3 : std_logic_vector(CW_SIZE - 1 - 6 - 4 downto 0);     -- third stage - MEM
+    signal cw4 : std_logic_vector(CW_SIZE - 1 - 6 - 4 - 5 downto 0); -- fourth stage - WB
+
+    signal aluOpcode1, aluOpcode2 : std_logic_vector(8 downto 0);
+
 begin
 
-    --DP: DATAPATH
-    DP : DATAPATH port map(
+    -- DECODE stage control signals
+    UIS   <= cw(CW_SIZE - 1);
+    SUS   <= cw(CW_SIZE - 2);
+    SES   <= cw(CW_SIZE - 3);
+    RF1   <= cw(CW_SIZE - 4);
+    RF2   <= cw(CW_SIZE - 5);
+    JUMPS <= cw(CW_SIZE - 6);
+
+    -- EXECUTION stage control signals
+    BS   <= cw2(CW_SIZE - 7);
+    AS   <= cw2(CW_SIZE - 8);
+    CNDS <= cw2(CW_SIZE - 9 downto CW_SIZE - 10);
+
+    -- MEMORY stage control signals
+    DMS   <= cw3(CW_SIZE - 11);
+    DMB   <= cw3(CW_SIZE - 12 downto CW_SIZE - 13);
+    RnW   <= cw3(CW_SIZE - 14);
+    DM_EN <= cw3(CW_SIZE - 15);
+
+    -- WRITE BACK stage control signals
+    WBS <= cw4(CW_SIZE - 16 downto CW_SIZE - 17);
+    WRF <= cw4(CW_SIZE - 18);
+    RDS <= cw4(CW_SIZE - 19 downto CW_SIZE - 20);
+
+    ALUS_s <= aluOpcode1;
+
+    dp : DATAPATH port map(
 
         Clk => Clk,
         Rst => Rst,
@@ -245,71 +218,55 @@ begin
         CACHE_MISS => CACHE_MISS_s
     );
 
-    --CU: CONTROL UNIT
-    CU : Hardwired_CU port map(
+    clock_process : process
+    begin
+        Clk <= '0';
+        wait for 5ns;
+        Clk <= '1';
+        wait for 5ns;
+    end process;
 
-        Clk => Clk,
-        Rst => Rst,
+    -- always enabled signals
+    IFIDEN_s  <= '1';
+    IDEXEN_s  <= '1';
+    EXMEMEN_s <= '1';
+    MEMWBEN_s <= '1';
+    WBIFEN_s  <= '1';
 
-        ------ # INPUTS FROM DATAPATH # ------
+    cu_sim_process : process (Clk, Rst)
+    begin
+        if (Rst = '1') then
+            cw2        <= (others => '0');
+            cw3        <= (others => '0');
+            cw4        <= (others => '0');
+            aluOpcode2 <= (others => '0');
+        elsif (rising_edge(Clk)) then
+            cw2        <= cw1(6 downto 0);
+            cw3        <= cw2(2 downto 0);
+            cw4        <= cw3(1 downto 0);
+            aluOpcode2 <= aluOpcode1;
+        end if;
+    end process;
 
-        -- ## OPCODE AND FUNC FIELDS
-        OPCODE => OPCODE,
-        FUNC   => FUNC,
-        -- ## BRANCH PREDICTION
-        PREDICTION => PREDICTION_s,
-        -- ## BRANCH CORRECTION FLUSH REQUEST
-        FLUSH_REQ => FLUSH_REQ_s,
-        -- ## RAW HAZARD STALL REQUESTS
-        STALL_EX_MEM   => STALL_EX_MEM_s,
-        STALL_ID_EX    => STALL_ID_EX_s,
-        n_cycles_stall => n_cycles_stall_s,
-        -- ## FORWARDING LOGIC SIGNALS
-        fwd => fwd_s,
-        -- ## CACHE MISS SIGNAL
-        CACHE_MISS => CACHE_MISS_s,
+    tb_process : process
+    begin
+        --initial values
+        Rst      <= '0';
+        cw        <= "00000000000000000000";
+        aluOpcode1 <= "000000000";
 
-        ------ # OUTPUTS TO DATAPATH # ------
-        
-        -- ## REGULAR CONTROL SIGNALS
-        -- ### DECODE STAGE OUTPUTS
-        UIS   => UIS_s,
-        SUS   => SUS_s,
-        SES   => SES_s,
-        RF1   => RF1_s,
-        RF2   => RF2_s,
-        JUMPS => JUMPS_s,
-        -- ### EXEC STAGE OUTPUTS
-        BS   => BS_s,
-        AS   => AS_s,
-        CNDS => CNDS_s,
-        ALUS => ALUS_s,
-        -- ### MEM STAGE OUTPUTS
-        DMS   => DMS_s,
-        DMB   => DMB_s,
-        RnW   => RnW_s,
-        DM_EN => DM_EN_s,
-        -- ### WRITE BACK STAGE OUTPUTS
-        WBS => WBS_s,
-        WRF => WRF_s,
-        RDS => RDS_s,
-        -- ## SPECIAL CONTROL SIGNALS
-        -- ### PIPELINE REGISTER ENABLE SIGNALS
-        WBIFEN  => WBIFEN_s,
-        IFIDEN  => IFIDEN_s,
-        IDEXEN  => IDEXEN_s,
-        EXMEMEN => EXMEMEN_s,
-        MEMWBEN => MEMWBEN_s,
-        -- ### FORWARDING LOGIC CONTROL SIGNALS
-        FWD_A_SEL  => FWD_A_SEL_s,
-        FWD_B_SEL  => FWD_B_SEL_s,
-        FWD_DM_SEL => FWD_DM_SEL_s,
-        FWD_JR_SEL => FWD_JR_SEL_s,
-        -- ### JUMP AND BRANCH PREDICTION CONTROL SIGNALS
-        JUMP   => JUMP_s,
-        BRANCH => BRANCH_s,
-        -- ### BRANCH CORRECTION CONTROL SIGNALS
-        NPC_SEL_RST => NPC_SEL_RST_s
-    );
+        wait for 2ns;
+        Rst <= '1';
+        wait for 5ns;
+        Rst <= '0';
 
-end STRUCTURAL;
+        wait for 5ns;
+
+        wait until rising_edge(Clk);
+        cw        <= "00010010000001001100";    -- addi
+        aluOpcode1 <= "00000000000"; --add
+
+        wait;
+    end process;
+
+end TBARCH;

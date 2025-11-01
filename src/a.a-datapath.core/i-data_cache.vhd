@@ -27,9 +27,7 @@ port (
     data_out_to_memory: out std_logic_vector(DATA_WIDTH-1 downto 0);
     RnW_memory: out std_logic;
     miss: out std_logic;
-    enable_memory: out std_logic;
-    --debug signals
-    state_p, nextState_p: out std_logic_vector(1 downto 0)
+    enable_memory: out std_logic
 );
 end DATA_CACHE;
 
@@ -232,7 +230,7 @@ begin
                 end if;
                 
                 -- addr_to_memory = old_tag & line_index & word offset & 00
-                addr_to_memory <= (ADDR_WIDTH-1 downto K+2 => '0') & std_logic_vector(old_tag) & addr(W+R+1 downto W+2) & std_logic_vector(counter) & "00";
+                addr_to_memory <= (ADDR_WIDTH-1 downto K+2 => '0') & std_logic_vector(old_tag) & savedAddress(W+R+1 downto W+2) & std_logic_vector(counter) & "00";
                 data_out_to_memory <= dc(line_index)(to_integer(counter));
                 
                 
@@ -266,15 +264,6 @@ begin
     rewrite_content(dc, FILE_PATH);
     
 end process;
-
--- debug
-state_p <= "00" when currState = NormalOp else
-           "01" when currState = WriteToMemory else
-           "10";
-
-nextState_p <= "00" when nextState = NormalOp else
-                "01" when nextState = WriteToMemory else
-                "10";
 
 
 end BEHAVIOURAL;
