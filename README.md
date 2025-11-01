@@ -26,7 +26,7 @@ After months of ideas, sketches, studying, wrong turns, right turns, endless sim
 * **Designed, implemented, and tested** a 5-stage **pipelined** DLX processor featuring:
 
   * Separate **instruction** and **data memory** (Harward Architecture)
-  * Complex **Forwarding** and **stalling** mechanisms
+  * **Forwarding** and **Stalling** mechanisms
   * **Data cache** integration
   * **Branch prediction** in the ID stage via a **Branch History Table (BHT)**
   * The following **instruction set**:
@@ -43,7 +43,7 @@ After months of ideas, sketches, studying, wrong turns, right turns, endless sim
     * **Memory (load)**: `lb`, `lbu`, `lh`, `lhu`, `lw`, `lhi`
     * **Memory (store)**: `sb`, `sh`, `sw`
    
-You can check the source code in the <a href="./src">`src`</a> folder, while <a href="./DLX_schematic.pdf" >`DLX_schematic.pdf`</a> shows the full processor schematic (download it for better quality).
+You can check the source code in the <a href="./src">`src`</a> folder, and the testbenches in <a href="./testbench">`testbench`</a>. <a href="./DLX_schematic.pdf" >`DLX_schematic.pdf`</a> shows the full processor schematic (download it for better quality).
 
 ---
 
@@ -52,7 +52,8 @@ You can check the source code in the <a href="./src">`src`</a> folder, while <a 
 The design followed a **hierarchical approach**, building the processor **bottom-up**:
 
 * Smaller, low-level components (down to the **gate level**) were developed and validated individually.
-* These modules were then combined to form larger, higher-level blocks — up to the **complete processor system**.
+* These modules were then combined to form larger, higher-level blocks (following a *structural* design approach) — up to the **complete processor system**.
+* For some modules, like memories or the forwarding/stalling unit, a *behavioral* design approach was instead used 
 
 ---
 
@@ -60,7 +61,7 @@ The design followed a **hierarchical approach**, building the processor **bottom
 
 Each module was verified through a dedicated **testbench**, forming a **chain of tested components** that enabled reliable verification of higher level components.
 
-To validate the complete processor, we executed **assembly programs (`.asm`)** compiled with a provided assembler.
+To validate the complete processor, we executed **assembly programs (`.asm`)** compiled with an assembler provided by the professors (therefore omitted in this repository).
 A **bash script** automated the loading of the generated machine code into **instruction** and **data memory**.
 
 During simulation:
@@ -71,4 +72,5 @@ During simulation:
 ## 🏹 Possible improvements
 
 * Implement multicycle operations: **multiplication** and **division**
-* IMplement a windowed register file for context switching
+* Implement a windowed register file for **multi-threading**
+* Optimize the design for **power** or **performance**
