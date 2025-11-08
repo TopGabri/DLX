@@ -47,7 +47,7 @@ After months of ideas, sketches, studying, wrong turns, right turns, endless sim
    * **Memory (load)**: `lb`, `lbu`, `lh`, `lhu`, `lw`, `lhi`
    * **Memory (store)**: `sb`, `sh`, `sw`
    
-You can check the source code in the <a href="./src">`src`</a> folder, and the testbenches in <a href="./testbench">`testbench`</a>. <a href="./DLX-scheme.pdf" >`DLX-scheme.pdf`</a> shows the full processor schematic (download it for better quality).
+You can check the source code in the <a href="./src">`src`</a> folder, and the testbenches in <a href="./testbench">`testbench`</a>. <a href="./DLX-scheme.pdf" >`DLX-scheme.pdf`</a> shows the full processor schematic (download it for better quality), while <a href="./ALU-scheme.pdf">`ALU-scheme.pdf`</a> depicts the internal logic of the ALU. 
 
 ---
 
