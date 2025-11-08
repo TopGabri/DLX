@@ -69,8 +69,8 @@ To validate the complete processor, we executed **assembly programs (`.asm`)** c
 A **bash script** automates the execution of the assembler on the specified `.asm` program and the loading of the generated machine code into two separate files, namely `instr_mem_init.mem` for `.text` segment and `data_mem_init.mem` for `.data` segment. 
 
 During simulation:
-* Upon **Reset**, **Instruction Memory** and **Data Memory** are loaded with the executable code and data from the respective `.mem` files
-* The specified sequence of instructions is executed
+* Upon **Reset**, **Instruction Memory** and **Data Memory** are loaded with the executable code and data from the respective `.mem` initialization files
+* The sequence of instructions loaded into the Instruction Memory is executed 
 * The **Register File**, **Data Cache** and **Data Memory** automatically write their contents to output files.
 
 At the end of the simulation, we can inspect the produced files to verify correctness and ensure that program execution matched expected behavior.
