@@ -15,7 +15,7 @@ All components — except for a few partially written files provided by the prof
 
 ---
 
-## 🔧 Tools adopted
+## 🔧 Tools employed
 
 * **Visual Studio Code** to organize project files, write code and documentation, and easily integrate Git
 * **Git (and GitHub)** to collaborate efficiently, enabling parallel development of independent modules and precise version tracking throughout the project.
@@ -27,29 +27,27 @@ All components — except for a few partially written files provided by the prof
 
 ## 🏆 Results achieved
 
-After months of ideas, sketches, studying, wrong turns, right turns, endless simulations, and long working sessions, we successfully:
+After months of ideas, sketches, studying, wrong turns, right turns, endless simulations, and long working sessions, we successfully **designed, implemented, and tested** a 5-stage **pipelined** DLX processor featuring:
 
-* **Designed, implemented, and tested** a 5-stage **pipelined** DLX processor featuring:
-
-  * Separate **instruction** and **data memory** (Harward Architecture)
-  * **Forwarding** and **Stalling** mechanisms
-  * **Data cache** integration
-  * **Branch prediction** in the ID stage via a **Branch History Table (BHT)**
-  * The following **instruction set**:
-  
-    * **Addition**: `add`, `addi`, `addu`, `addui`
-    * **Subtraction**: `sub`, `subi`, `subu`, `subui`
-    * **Logic**: `and`, `andi`, `or`, `ori`, `xor`, `xori`
-    * **Shift**: `sll`, `slli`, `srl`, `srli`, `sra`, `srai`
-    * **Comparison (signed)**: `slt`, `slti`, `sle`, `slei`, `sgt`, `sgti`, `sge`, `sgei`
-    * **Comparison (unsigned)**: `sltu`, `sltui`, `sleu`, `sleui`, `sgtu`, `sgtui`, `sgeu`, `sgeui`
-    * **Equality**: `seq`, `seqi`, `sne`, `snei`
-    * **Branch**: `beqz`, `bnez`
-    * **Jump**: `j`, `jal`, `jr`, `jalr`
-    * **Memory (load)**: `lb`, `lbu`, `lh`, `lhu`, `lw`, `lhi`
-    * **Memory (store)**: `sb`, `sh`, `sw`
+ * Separate **instruction** and **data memory** (Harward Architecture)
+ * Data Hazards handling through **Forwarding** and **Stalling** mechanisms
+ * A **Data cache** with direct mapping and write back policy 
+ * **Branch prediction** in the ID stage via a 16-entry **Branch History Table (BHT)** with 2-bit prediction scheme
+ * The following **instruction set**:
+ 
+   * **Addition**: `add`, `addi`, `addu`, `addui`
+   * **Subtraction**: `sub`, `subi`, `subu`, `subui`
+   * **Logic**: `and`, `andi`, `or`, `ori`, `xor`, `xori`
+   * **Shift**: `sll`, `slli`, `srl`, `srli`, `sra`, `srai`
+   * **Comparison (signed)**: `slt`, `slti`, `sle`, `slei`, `sgt`, `sgti`, `sge`, `sgei`
+   * **Comparison (unsigned)**: `sltu`, `sltui`, `sleu`, `sleui`, `sgtu`, `sgtui`, `sgeu`, `sgeui`
+   * **Equality**: `seq`, `seqi`, `sne`, `snei`
+   * **Branch**: `beqz`, `bnez`
+   * **Jump**: `j`, `jal`, `jr`, `jalr`
+   * **Memory (load)**: `lb`, `lbu`, `lh`, `lhu`, `lw`, `lhi`
+   * **Memory (store)**: `sb`, `sh`, `sw`
    
-You can check the source code in the <a href="./src">`src`</a> folder, and the testbenches in <a href="./testbench">`testbench`</a>. <a href="./DLX_schematic.pdf" >`DLX_schematic.pdf`</a> shows the full processor schematic (download it for better quality).
+You can check the source code in the <a href="./src">`src`</a> folder, and the testbenches in <a href="./testbench">`testbench`</a>. <a href="./DLX-scheme.pdf" >`DLX-scheme.pdf`</a> shows the full processor schematic (download it for better quality).
 
 ---
 
@@ -68,17 +66,19 @@ The design followed a **hierarchical approach**, building the processor **bottom
 Each module was verified through a dedicated **testbench**, forming a **chain of tested components** that enabled reliable verification of higher level components.
 
 To validate the complete processor, we executed **assembly programs (`.asm`)** compiled with an assembler provided by the professors (therefore omitted in this repository).
-A **bash script** automated the loading of the generated machine code into **instruction** and **data memory**.
+A **bash script** automates the execution of the assembler on the specified `.asm` program and the loading of the generated machine code into two separate files, namely `instr_mem_init.mem` for `.text` segment and `data_mem_init.mem` for `.data` segment. 
 
 During simulation:
+* Upon **Reset**, **Instruction Memory** and **Data Memory** are loaded with the executable code and data from the respective `.mem` initialization files
+* The sequence of instructions loaded into the Instruction Memory is executed 
+* The **Register File**, **Data Cache** and **Data Memory** automatically write their contents to output files.
 
-* The **register file** and **data memory** automatically write their contents to output files.
-* At the end of each simulation, we could inspect these files to verify correctness and ensure that program execution matched expected behavior.
+At the end of the simulation, we can inspect the produced files to verify correctness and ensure that program execution matched expected behavior.
 
 ---
 
 ## 🏹 Possible improvements
 
 * Implement multicycle operations: **multiplication** and **division**
-* Implement a windowed register file for **multi-threading**
-* Optimize the design for **power** or **performance**
+* Implement a **windowed register file** for **multi-threading**
+* Optimize the design for **power** and **performance**
