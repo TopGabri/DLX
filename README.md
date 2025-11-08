@@ -15,7 +15,7 @@ All components — except for a few partially written files provided by the prof
 
 ---
 
-## 🔧 Tools adopted
+## 🔧 Tools employed
 
 * **Visual Studio Code** to organize project files, write code and documentation, and easily integrate Git
 * **Git (and GitHub)** to collaborate efficiently, enabling parallel development of independent modules and precise version tracking throughout the project.
