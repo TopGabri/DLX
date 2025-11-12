@@ -41,6 +41,10 @@ entity DATAPATH is
         BRANCH : in std_logic; -- do branch prediction
         -- ### BRANCH CORRECTION CONTROL SIGNALS
         NPC_SEL_RST : in std_logic; -- forces NPC_SEL signal to 0 when high
+        -- ## INSTRUCTION MEMORY INTERFACE
+        INSTR_MEM_OUT : in std_logic_vector(INSTRUCTION_WIDTH - 1 downto 0); -- INSTR_MEM_OUT: Output of Instruction Memory
+        -- ## DATA MEMORY INTERFACE
+        DATA_FROM_DM : in std_logic_vector(DATA_WIDTH - 1 downto 0);
 
         -- # /* OUTPUT PORTS */
 
@@ -58,7 +62,14 @@ entity DATAPATH is
         -- ## FORWARDING LOGIC SIGNALS 
         fwd : out std_logic_vector(11 downto 0); -- concatenation of all forwarding signals
         -- ## CACHE MISS SIGNAL    
-        CACHE_MISS : out std_logic
+        CACHE_MISS : out std_logic;
+        -- ## INSTRUCTION MEMORY INTERFACE
+        PC_OUT : out std_logic_vector(ADDR_WIDTH - 1 downto 0); -- PC address sent to Instruction Memory
+        -- ## DATA MEMORY INTERFACE
+        ADDR_TO_DM : out std_logic_vector(ADDR_WIDTH - 1 downto 0); -- address sent to Data Memory
+        ENABLE_DM  : out std_logic;                                 -- enable signal sent to Data Memory
+        RnW_DM     : out std_logic;                                 -- read/not write signal sent to Data Memory
+        DATA_TO_DM : out std_logic_vector(DATA_WIDTH - 1 downto 0)  -- data to be written to Data Memory
     );
 end DATAPATH;
 
@@ -168,20 +179,6 @@ architecture STRUCT of DATAPATH is
         );
     end component ZERO_EXTENDER;
 
-    component IRAM is
-        generic (
-            I_MEM_DEPTH    : integer := 128;
-            I_SIZE         : integer := 32;
-            FILE_PATH      : string;
-            FILE_PATH_INIT : string
-        );
-        port (
-            Rst  : in std_logic;
-            Addr : in std_logic_vector(I_SIZE - 1 downto 0);
-            Dout : out std_logic_vector(I_SIZE - 1 downto 0)
-        );
-    end component;
-
     component REGISTER_FILE is
         generic (
             NBIT_ADD  : integer := 5;
@@ -226,7 +223,7 @@ architecture STRUCT of DATAPATH is
 
     component DATA_CACHE is
         generic (
-            FILE_PATH            : string  := "cache.mem";
+            FILE_PATH            : string  := "./memory_files/cache.mem";
             MEMORY_ACCESS_CYCLES : integer := 0;
             K                    : integer; -- log2 MAINSIZE (#words in memory)
             R                    : integer; -- log2 NLINES (#lines in the cache)
@@ -249,25 +246,6 @@ architecture STRUCT of DATAPATH is
             enable_memory       : out std_logic
         );
     end component DATA_CACHE;
-
-    component DATA_MEMORY is
-        generic (
-            FILE_PATH      : string;
-            FILE_PATH_INIT : string;
-            D_MEM_DEPTH    : natural := 128;
-            DATA_DELAY     : natural := 0
-        );
-        port (
-            CLK          : in std_logic;
-            RST          : in std_logic;
-            ADDR         : in std_logic_vector(31 downto 0);
-            ENABLE       : in std_logic;
-            READNOTWRITE : in std_logic;
-            DATA_READY   : out std_logic;
-            IN_DATA      : in std_logic_vector(31 downto 0);
-            OUT_DATA     : out std_logic_vector(31 downto 0)
-        );
-    end component DATA_MEMORY;
 
     component FORWARDING_STALLING_LOGIC is
         port (
@@ -298,17 +276,12 @@ architecture STRUCT of DATAPATH is
         );
     end component;
 
-    -- CONSTANTS
-    constant DATA_DELAY : integer := 2; --clock cycles needed to read/write a word to/from data memory when there is a cache miss
-
     -- DATAPATH signals
 
     -- IF
-    signal PC_Q          : std_logic_vector(ADDR_WIDTH - 1 downto 0);        -- PC_Q: Program Counter
-    signal PC_INCR       : std_logic_vector(ADDR_WIDTH - 1 downto 0);        -- PC_INCR: Program Counter Incremented (PC+4)
-    signal INSTR_ADDR    : std_logic_vector(ADDR_WIDTH - 1 downto 0);        -- INSTR_ADDR: potential NPC
-    signal INSTR_MEM_OUT : std_logic_vector(INSTRUCTION_WIDTH - 1 downto 0); -- INSTR_MEM_OUT: Output of Instruction Memory
-    -- no IR_IN signal (input comes directly from port IRin)
+    signal PC_Q       : std_logic_vector(ADDR_WIDTH - 1 downto 0); -- PC_Q: Program Counter
+    signal PC_INCR    : std_logic_vector(ADDR_WIDTH - 1 downto 0); -- PC_INCR: Program Counter Incremented (PC+4)
+    signal INSTR_ADDR : std_logic_vector(ADDR_WIDTH - 1 downto 0); -- INSTR_ADDR: potential NPC
 
     -- ID
     signal PC_INCR_ID_Q             : std_logic_vector(ADDR_WIDTH - 1 downto 0);        -- PC_INCR_ID_Q: PC_INCR in pipeline stage ID
@@ -364,15 +337,8 @@ architecture STRUCT of DATAPATH is
     signal WB_DATA                     : std_logic_vector(DATA_WIDTH - 1 downto 0);        -- WB_DATA: Write-back data
     signal MEM_WB_IR_RS2, MEM_WB_IR_RD : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0);    --MEM_WB_IR_RS2: IR[rs2] in WB stage, MEM_WB_IR_RD: IR[rd] in WB stage
     signal RD                          : std_logic_vector(REG_ADDR_WIDTH - 1 downto 0);    -- destination register of write back
-    -- 1 bit std_logic_vector signals compatible with mux and register ports (std_logic signals do not work)
 
-    -- CACHE <-> MEMORY COMMUNICATION SIGNALS
-    signal addr_to_memory_s                            : std_logic_vector(ADDR_WIDTH - 1 downto 0);
-    signal data_in_from_memory_s, data_out_to_memory_s : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal RnW_memory_s, enable_memory_s               : std_logic;
 begin
-
-    
     --------------------------------------- * START OF DATAPATH PIPELINE * -------------------------------------------
 
     ------------------------------------------------ FETCH (IF) ---------------------------------------------------- 
@@ -401,18 +367,9 @@ begin
     );
 
     JB <= JUMP or BRANCH;
-    -- INSTR_MEMORY: Instruction Memory
-    INSTR_MEMORY : IRAM generic map(
-        I_MEM_DEPTH    => I_MEM_DEPTH,
-        I_SIZE         => INSTRUCTION_WIDTH,
-        FILE_PATH      => "instr_mem.mem",
-        FILE_PATH_INIT => "instr_mem_init.mem"
-    )
-    port map(
-        Rst  => Rst,
-        Addr => PC_Q,
-        Dout => INSTR_MEM_OUT
-    );
+
+    -- send PC to Instruction Memory
+    PC_OUT <= PC_Q;
 
     -- IR: Instruction Register
     IR : REG generic map(N => INSTRUCTION_WIDTH) port map(D => INSTR_MEM_OUT, CLK => Clk, Rst => Rst, EN => IFIDEN, Q => IR_Q);
@@ -432,7 +389,7 @@ begin
     IMM_J  <= IR_Q(25 downto 0);
 
     -- RF: register file
-    RF : REGISTER_FILE generic map(NBIT_ADD => REG_ADDR_WIDTH, NBIT_DATA => DATA_WIDTH, FILE_PATH => "reg_file.mem")
+    RF : REGISTER_FILE generic map(NBIT_ADD => REG_ADDR_WIDTH, NBIT_DATA => DATA_WIDTH, FILE_PATH => "./memory_files/reg_file.mem")
     port map(
         Clk     => Clk,
         reset   => Rst,
@@ -452,7 +409,7 @@ begin
     PC_EX_Q <= std_logic_vector(unsigned(PC_INCR_EX_Q) - 4);
 
     -- BHT: Branch History Table
-    BRANCH_HISTORY_TABLE : BHT generic map(BHT_SIZE => 16, ADDR_SIZE => 4, FILE_PATH => "bht.mem")
+    BRANCH_HISTORY_TABLE : BHT generic map(BHT_SIZE => 16, ADDR_SIZE => 4, FILE_PATH => "./memory_files/bht.mem")
     port map(
         Clk          => Clk,
         Rst          => Rst,
@@ -464,7 +421,7 @@ begin
         Prediction_2 => PREDICTION_2  -- EX stage predicted branch outcome 
     );
 
-    PREDICTION <= PREDICTION_1; -- output the prediction signal
+    PREDICTION <= PREDICTION_1;                  -- output the prediction signal
     UPDATE_BHT <= CNDS(0) and (not NPC_SEL_RST); -- UPDATE_BHT is asserted when the instruction in EX is a valid branch 
 
     -- SIGN_EXTENDER_I: sign-extender for I-type immediate
@@ -626,11 +583,11 @@ begin
         Y => COND
     );
 
-    DIFF    <= COND xor PREDICTION_2;    -- DIFF is 1 when the prediction != actual outcome
-    MISS    <= DIFF and CNDS(0);         -- BRANCH is 1 when DIFF is 1 and the instruction is a branch (CNDS[0]=1)
-    NPC_SEL <= MISS and not(NPC_SEL_RST); -- NPC_SEL is 1 when BRANCH=1 and NPC_SEL_RST=0 (not a reset)
-    FLUSH_REQ <= NPC_SEL; -- FLUSH_REQ is asserted when NPC_SEL is 1 (to correct branch misprediction)
-    
+    DIFF      <= COND xor PREDICTION_2;     -- DIFF is 1 when the prediction != actual outcome
+    MISS      <= DIFF and CNDS(0);          -- BRANCH is 1 when DIFF is 1 and the instruction is a branch (CNDS[0]=1)
+    NPC_SEL   <= MISS and not(NPC_SEL_RST); -- NPC_SEL is 1 when BRANCH=1 and NPC_SEL_RST=0 (not a reset)
+    FLUSH_REQ <= NPC_SEL;                   -- FLUSH_REQ is asserted when NPC_SEL is 1 (to correct branch misprediction)
+
     -- MUX_CORRECTED_INSTR_ADDR: chooses between ALU_OUT_D (mispredicted not taken) and PC_INCR_EX_Q (mispredicted taken)
     MUX_CORRECTED_INSTR_ADDR : MUX_2_1 generic map(
         N   => ADDR_WIDTH) port map(
@@ -645,10 +602,10 @@ begin
 
     -- IN_DATA: register containing input data of Data Memory (RF_OUT_2_Q)
     IN_DATA : REG generic map(N => DATA_WIDTH) port map(D => B, CLK => Clk, Rst => Rst, EN => EXMEMEN, Q => IN_DATA_Q);
-    
+
     -- EX_MEM_IR: pipeline register between EX and MEM containing instruction
     EX_MEM_IR : REG generic map(N => INSTRUCTION_WIDTH) port map(D => ID_EX_IR_Q, CLK => Clk, Rst => Rst, EN => EXMEMEN, Q => EX_MEM_IR_Q);
-    
+
     -- PC_INCR_MEM_REG: pipeline register that forwards PC_INCR from EX to MEM stage
     PC_INCR_MEM : REG generic map(N => ADDR_WIDTH) port map(D => PC_INCR_EX_Q, CLK => Clk, Rst => Rst, EN => EXMEMEN, Q => PC_INCR_MEM_Q);
 
@@ -667,7 +624,7 @@ begin
 
     -- DATA_CACHE
     CACHE : DATA_CACHE generic map(
-        FILE_PATH            => "data_cache.mem",
+        FILE_PATH            => "./memory_files/data_cache.mem",
         MEMORY_ACCESS_CYCLES => DATA_DELAY,
         K                    => WORD_ADDR_WIDTH,
         R                    => CACHE_LINE_ADDR_WIDTH,
@@ -683,29 +640,12 @@ begin
         data_in             => DM_IN,
         data_out            => LMD_D,
         RnW                 => RnW,
-        addr_to_memory      => addr_to_memory_s,
-        data_in_from_memory => data_in_from_memory_s,
-        data_out_to_memory  => data_out_to_memory_s,
-        RnW_memory          => RnW_memory_s,
+        addr_to_memory      => ADDR_TO_DM,
+        data_in_from_memory => DATA_FROM_DM,
+        data_out_to_memory  => DATA_TO_DM,
+        RnW_memory          => RnW_DM,
         miss                => CACHE_MISS,
-        enable_memory       => enable_memory_s
-    );
-
-    -- DATA_MEMORY    
-    MEMORY : DATA_MEMORY generic map(
-        FILE_PATH      => "data_mem.mem",
-        FILE_PATH_INIT => "data_mem_init.mem",
-        D_MEM_DEPTH    => D_MEM_DEPTH,
-        DATA_DELAY     => DATA_DELAY
-    )
-    port map(
-        CLK          => clk,
-        RST          => Rst,
-        ADDR         => addr_to_memory_s,
-        ENABLE       => enable_memory_s,
-        READNOTWRITE => RnW_memory_s,
-        IN_DATA      => data_out_to_memory_s,
-        OUT_DATA     => data_in_from_memory_s
+        enable_memory       => ENABLE_DM
     );
 
     -- LMD: Load Memory Data. Stores the output of the Data Memory

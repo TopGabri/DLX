@@ -22,6 +22,9 @@ package DLX_types is
     constant ALUS_SIZE          : integer := 11;
     constant MICROCODE_MEM_SIZE : integer := 62;               -- MICROCODE MEMORY size   
     subtype aluOp is std_logic_vector(ALUS_SIZE - 1 downto 0); -- type of ALU OPERATION  
+	
+	-- Delays
+    constant DATA_DELAY : integer := 2; --clock cycles needed to read/write a word to/from data memory when there is a cache miss
 
     -- R-Type instruction -> FUNC field
     constant RTYPE_SLL  : std_logic_vector(FUNC_SIZE - 1 downto 0) := "00000000100"; -- 4. sll RD,RS1,RS2

@@ -69,8 +69,8 @@ architecture Behavioral of Hardwired_CU is
     --control word signals
 
     -- ID
-    --    cw[19] = UIS          ; Upper Immediate Signal
-    --    cw[18] = SUS          ; Signed Unsigned (Immediate) Signal
+    --    cw[19] = UIS          ; Upper Immediate Selection
+    --    cw[18] = SUS          ; Signed Unsigned (Immediate) Selection
     --    cw[17] = SES          ; Sign-Extender Selection 
     --    cw[16] = RF1          ; RF read port 1 enable
     --    cw[15] = RF2          ; RF read port 2 enable
@@ -404,9 +404,9 @@ begin
 
         case state is
 
-            when WaitForReq =>
+            when WaitForReq =>  
                 if (CACHE_MISS = '1') then
-                    enableSignals <= "00000"; -- stall pipeline (only MEM/WB enabled)
+                    enableSignals <= "00000"; -- stall pipeline 
                     nextState     <= CacheMiss;
                 elsif (FLUSH_REQ = '1') then
                     nextFlushCounter <= 1;

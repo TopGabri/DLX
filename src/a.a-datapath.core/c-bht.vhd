@@ -70,8 +70,8 @@ begin
 
     begin
 
-        index_1 := to_integer(unsigned(PC_1(ADDR_SIZE - 1 downto 0))); -- index for prediction 1
-        index_2 := to_integer(unsigned(PC_2(ADDR_SIZE - 1 downto 0))); -- index for prediction 2
+        index_1 := to_integer(unsigned(PC_1(ADDR_SIZE - 1 + 2 downto 2))); -- index for prediction 1
+        index_2 := to_integer(unsigned(PC_2(ADDR_SIZE - 1 + 2 downto 2))); -- index for prediction 2
 
         -- write in BHT
         if Rst = '1' then

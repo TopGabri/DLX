@@ -17,8 +17,7 @@ architecture BEHAVIORAL of EQUAL0 is
 
 begin
 
-    with x select
-        o <= '1' when zeros,
-             '0' when others;
+        o <= '1' when (x = zeros) else 
+        		 '0';
              
 end BEHAVIORAL;

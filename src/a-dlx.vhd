@@ -4,8 +4,18 @@ use WORK.DLX_Types.all;
 
 entity DLX is
     port (
+        -- # Clock and Reset Signals
         Clk : in std_logic;
-        Rst : in std_logic
+        Rst : in std_logic;
+        -- # Instruction Memory Interface
+        PC_OUT        : out std_logic_vector(ADDR_WIDTH - 1 downto 0);
+        INSTR_MEM_OUT : in std_logic_vector(INSTRUCTION_WIDTH - 1 downto 0);
+        -- # Data Memory Interface
+        ADDR_TO_DM   : out std_logic_vector(ADDR_WIDTH - 1 downto 0);
+        ENABLE_DM    : out std_logic;
+        RnW_DM       : out std_logic;
+        DATA_TO_DM   : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+        DATA_FROM_DM : in std_logic_vector(DATA_WIDTH - 1 downto 0)
     );
 end DLX;
 
@@ -49,6 +59,10 @@ architecture STRUCTURAL of DLX is
             BRANCH : in std_logic; -- do branch prediction
             -- ### BRANCH CORRECTION CONTROL SIGNALS
             NPC_SEL_RST : in std_logic; -- forces NPC_SEL signal to 0 when high
+            -- ## INSTRUCTION MEMORY INTERFACE
+            INSTR_MEM_OUT : in std_logic_vector(INSTRUCTION_WIDTH - 1 downto 0); -- INSTR_MEM_OUT: Output of Instruction Memory
+            -- ## DATA MEMORY INTERFACE
+            DATA_FROM_DM : in std_logic_vector(DATA_WIDTH - 1 downto 0);
 
             -- # /* OUTPUT PORTS */
 
@@ -66,7 +80,14 @@ architecture STRUCTURAL of DLX is
             -- ## FORWARDING LOGIC SIGNALS 
             fwd : out std_logic_vector(11 downto 0); -- concatenation of all forwarding signals
             -- ## CACHE MISS SIGNAL    
-            CACHE_MISS : out std_logic
+            CACHE_MISS : out std_logic;
+            -- ## INSTRUCTION MEMORY INTERFACE
+            PC_OUT : out std_logic_vector(ADDR_WIDTH - 1 downto 0); -- PC address sent to Instruction Memory
+            -- ## DATA MEMORY INTERFACE
+            ADDR_TO_DM : out std_logic_vector(ADDR_WIDTH - 1 downto 0); -- Address sent to Data Memory
+            ENABLE_DM  : out std_logic;                                 -- Enable signal for Data Memory
+            RnW_DM     : out std_logic;                                 -- Read/Write signal for Data Memory
+            DATA_TO_DM : out std_logic_vector(DATA_WIDTH - 1 downto 0)  -- Data to be written to Data Memory
         );
     end component DATAPATH;
 
@@ -128,8 +149,6 @@ architecture STRUCTURAL of DLX is
             NPC_SEL_RST : out std_logic -- forces NPC_SEL signal to 0 when high
         );
     end component Hardwired_CU;
-    
-
     -- DECODE STAGE CONTROL SIGNALS
     signal UIS_s   : std_logic;
     signal SUS_s   : std_logic;
@@ -170,7 +189,7 @@ architecture STRUCTURAL of DLX is
 
     -- register enable signals
     signal WBIFEN_s, IFIDEN_s, IDEXEN_s, EXMEMEN_s, MEMWBEN_s : std_logic;
-    signal NPC_SEL_RST_s                                       : std_logic;
+    signal NPC_SEL_RST_s                                      : std_logic;
 
     -- JUMP and BRANCH PREDICTION signals
     signal JUMP_s       : std_logic;
@@ -179,7 +198,7 @@ architecture STRUCTURAL of DLX is
 
     -- CACHE MISS signal
     signal CACHE_MISS_s : std_logic;
-    
+
 begin
 
     --DP: DATAPATH
@@ -225,6 +244,10 @@ begin
         BRANCH => BRANCH_s,
         -- ### BRANCH CORRECTION CONTROL SIGNALS
         NPC_SEL_RST => NPC_SEL_RST_s,
+        -- ## INSTRUCTION MEMORY INTERFACE
+        INSTR_MEM_OUT => INSTR_MEM_OUT,
+        -- ## DATA MEMORY INTERFACE
+        DATA_FROM_DM => DATA_FROM_DM,
 
         ------ # OUTPUTS TO CU # ------
 
@@ -242,7 +265,14 @@ begin
         -- ## FORWARDING LOGIC SIGNALS
         fwd => fwd_s,
         -- ## CACHE MISS SIGNAL
-        CACHE_MISS => CACHE_MISS_s
+        CACHE_MISS => CACHE_MISS_s,
+        -- ## INSTRUCTION MEMORY INTERFACE
+        PC_OUT => PC_OUT,
+        -- ## DATA MEMORY INTERFACE
+        ADDR_TO_DM => ADDR_TO_DM,
+        ENABLE_DM  => ENABLE_DM,
+        RnW_DM     => RnW_DM,
+        DATA_TO_DM => DATA_TO_DM
     );
 
     --CU: CONTROL UNIT
@@ -270,7 +300,7 @@ begin
         CACHE_MISS => CACHE_MISS_s,
 
         ------ # OUTPUTS TO DATAPATH # ------
-        
+
         -- ## REGULAR CONTROL SIGNALS
         -- ### DECODE STAGE OUTPUTS
         UIS   => UIS_s,
