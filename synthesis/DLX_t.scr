@@ -1,0 +1,75 @@
+##############################################################
+#SCRIPT FOR SPEEDING UP and RECORDING the DLX SYNTHESIS#
+# analyzing and checking vhdl netlist#
+# here the analyze command is used for each file from bottom to top #
+##############################################################
+
+
+# analyze custom types, constants and functions
+analyze -library WORK -format vhdl { ./src/000-globals.vhd }
+
+# analyze DATAPATH
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/02.a.a.a-ND2_1bit.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/02.a.a.b-IV_1bit.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/02.a.a-mux21_1bit.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/02.a-mux21.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/01-p4_adder.core/a.a.a.a-fa.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/01-p4_adder.core/a.a.a-rca_generic.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/01-p4_adder.core/a.a-carry_select.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/01-p4_adder.core/a-sum_generator.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/01-p4_adder.core/b.a-pg_block.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/01-p4_adder.core/b.b-g_block.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/01-p4_adder.core/b.c-pg_logic.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/01-p4_adder.core/b-carry_generator.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/01-p4_adder.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/02-mux41.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/a-ALU.core/a.a-NAND3.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/a-ALU.core/a-logicals.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/a-ALU.core/b-T2_shifter.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/a-ALU.core/c-equal0.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/a-ALU.core/d-comparator.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/a-ALU.core/f-mux81.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/a-ALU.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/b-sign_extender.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/c-bht.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/d-registerfile.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/e-reg.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/f-forwarding_stalling_logic.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/g-zero_extender.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.core/h-data_cache.vhd }
+analyze -library WORK -format vhdl { ./src/a.a-datapath.vhd }
+
+# analyze CONTROL UNIT
+analyze -library WORK -format vhdl { ./src/a.b-CU.vhd}
+
+# analyze DLX
+analyze -library WORK -format vhdl { ./src/a-dlx.vhd}
+
+##############################################################
+# elaborating the top entity -- here supposed DLX#
+# choose the architecture you want
+elaborate DLX -architecture STRUCTURAL
+##########################################
+
+set_wire_load_model -name 5K_hvration_1_4
+# Compilation and optimization with normal mapping effort using a 10 ns clock period
+create_clock -name CLK -period 10.0 [ get_ports Clk ]
+compile
+
+# Reporting timing and area after the first synthesis
+report_timing > reports/DLX_timeopt_10ns_t.rpt
+report_area > reports/DLX_timeopt_10ns_a.rpt
+
+# Compilation and optimization with high mapping effort using a 2 ns clock period
+create_clock -name CLK -period 2.0 [ get_ports Clk ]
+compile -map_effort high
+
+# Save reports
+report_timing > reports/DLX_timeopt_2ns_t.rpt
+report_area > reports/DLX_timeopt_2ns_a.rpt
+
+# Export results
+write -hierarchy -format ddc -output outputs/DLX-structural-topt.ddc
+write -hierarchy -format vhdl -output outputs/DLX-structural-topt.vhdl
+write -hierarchy -format verilog -output outputs/DLX-structural-topt.v
+write_sdc outputs/DLX-structural-topt.sdc
