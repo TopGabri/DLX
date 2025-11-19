@@ -23,16 +23,20 @@ All components — except for a few partially written files provided by the prof
 * **(Siemens) QuestaSim** to test VHDL code
 * **(Synopsys) Design Vision** for the **synthesis** and **optimization**
 * **(Cadence) Innovus** to perform **physical design**
-
+---
 
 ## 🏆 Results achieved
 
 After months of ideas, sketches, studying, wrong turns, right turns, endless simulations, and long working sessions, we successfully **designed, implemented, and tested** a 5-stage **pipelined** DLX processor featuring:
 
- * Separate **instruction** and **data memory** (Harward Architecture)
+ * **500 MHz** operating frequency 
+ * **22000 $\mu m^2$** die area
+ * 1 clock cycle per **pipeline stage**
+ * minimum **CPI** of 1
  * Data Hazards handling through **Forwarding** and **Stalling** mechanisms
  * A **Data cache** with direct mapping and write back policy 
  * **Branch prediction** in the ID stage via a 16-entry **Branch History Table (BHT)** with 2-bit prediction scheme
+ * **Instruction Memory** and **Data Memory** interfaces (Harward Architecture)
  * The following **instruction set**:
  
    * **Addition**: `add`, `addi`, `addu`, `addui`
@@ -48,10 +52,13 @@ After months of ideas, sketches, studying, wrong turns, right turns, endless sim
    * **Memory (store)**: `sb`, `sh`, `sw`
    
 
-</br>
+---
 
-You can check the **source code** in the <a href="./src">`src`</a> folder, and the **testbenches** in <a href="./testbench">`testbench`</a>. <a href="./DLX-scheme.pdf" >`DLX-scheme.pdf`</a> shows the full processor **schematic** (download it for better quality), while <a href="./ALU-scheme.pdf">`ALU-scheme.pdf`</a> depicts the internal logic of the ALU. The full project **documentation** can be viewed in <a href="./Report.pdf">`Report.pdf`</a></br> 
-In the <a href="./synthesis">`synthesis`</a> folder you can find the **scripts** used for synthesizing the processor with Design Vision, along with the synthesis **reports** and the **netlist**. 
+
+## 📂 Deliverables
+
+You can check the **source code** in the <a href="./src">`src`</a> folder, and the **testbenches** in <a href="./testbench">`testbench`</a>. In <a href="./figures" >`figures`</a>, <a href="./figures/DLX-scheme-simpl.pdf" >`DLX-scheme-simpl.pdf`</a> shows a simplified schematic view of the processor, while <a href="./figures/DLX-scheme.pdf" >`DLX-scheme.pdf`</a> depicts the full **schematic** (download it for better quality); <a href="./figures/ALU-scheme.pdf">`ALU-scheme.pdf`</a> shows the internal logic of the ALU. The full project **documentation** can be viewed in <a href="./Report.pdf">`Report.pdf`</a>.</br> 
+In the <a href="./synthesis">`synthesis`</a> folder you can find the **scripts** used for synthesizing the processor with _Design Vision_, along with the synthesis **reports**, **netlist** and main **schematics**. 
 
 ---
 
@@ -65,7 +72,7 @@ The design followed a **hierarchical approach**, building the processor **bottom
 
 ---
 
-## ⛓️‍💥 Testing and Verification
+## ⛓️‍💥 Testing and Design Verification
 
 Each module was verified through a dedicated **testbench**, forming a **chain of tested components** that enabled reliable verification of higher level components.
 
@@ -79,10 +86,12 @@ During simulation:
 
 At the end of the simulation, we can inspect the produced files to verify correctness and ensure that program execution matched expected behavior.
 
+
 ---
 
 ## 🏹 Possible improvements
 
 * Implement multicycle operations: **multiplication** and **division**
 * Implement a **windowed register file** for **multi-threading**
+* Implement **exception handling**
 * Optimize the design for **power** and **performance**
