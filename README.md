@@ -84,8 +84,7 @@ During simulation:
 * The sequence of instructions loaded into the Instruction Memory is executed 
 * The **Register File**, **Data Cache** and **Data Memory** automatically write their contents to output files.
 
-At the end of the simulation, we can inspect the produced files to verify correctness and ensure that program execution matched expected behavior.
-
+At the end of the simulation, we can inspect the produced files to verify correctness and ensure that program execution matched expected behavior. If any incorrectness is detected, white box testing can be performed by looking at the internal **waveforms** of the system. 
 
 ---
 
