@@ -92,7 +92,8 @@ At the end of the simulation, we can inspect the produced files to verify correc
 
 This project provided extensive hands-on experience in digital design, processor microarchitecture, and EDA tools. In particular, it provided me with experience and skills in the following areas:
 
-- Digital Design (with VHDL)
+- Digital Hardware Design
+- VHDL language
 - RISC Architectures
 - Branch Prediction mechanisms
 - Hardware Verification and Testbench development
