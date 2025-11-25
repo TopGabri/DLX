@@ -90,7 +90,7 @@ At the end of the simulation, we can inspect the produced files to verify correc
 
 ## 📈 Skills and Experience Gained
 
-This project provided extensive hands-on experience in digital design, processor microarchitecture, and EDA tools. In particular, it provided me with experience and skills in the following areas:
+This project provided extensive hands-on experience in digital design, processor microarchitecture, and EDA tools. In particular, it provided me with **experience** and **skills** in the following areas:
 
 - Digital Hardware Design
 - VHDL language
@@ -104,7 +104,7 @@ This project provided extensive hands-on experience in digital design, processor
 - Git-based collaborative development
 - Performance Analysis and Optimization
 
-From a soft-skills perspective, this project allowed me to improve on:
+Moreover, this project allowed me to improve on the following **soft** skills:
 - Teamwork
 - Problem Solving
 - Leadership
