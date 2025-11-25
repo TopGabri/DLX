@@ -6,7 +6,7 @@
 
 ## 🌍 Overview
 
-This project consisted in the **design and implementation of a fully pipelined, five-stage DLX processor**, developed from the **specification** down to **synthesis and physical design** level.
+This project consisted in the **design and implementation of a fully pipelined, five-stage DLX processor**, developed from the **specification** down to **synthesis and physical layout** level.
 
 The **DLX** is a theoretical **RISC (Reduced Instruction Set Computer)** processor, whose architecture closely resembles that of **RISC-V**.
 [More details about the DLX architecture ➜](https://en.wikipedia.org/wiki/DLX)
@@ -85,6 +85,27 @@ During simulation:
 * The **Register File**, **Data Cache** and **Data Memory** automatically write their contents to output files.
 
 At the end of the simulation, we can inspect the produced files to verify correctness and ensure that program execution matched expected behavior. If any incorrectness is detected, white box testing can be performed by looking at the internal **waveforms** of the system. 
+
+---
+
+## 📈 Skills and Experience Gained
+
+This project provided extensive hands-on experience in digital design, processor microarchitecture, and EDA tools. In particular, it provided me with experience and skills in the following areas:
+
+- Digital Design (with VHDL)
+- RISC Architectures
+- Branch Prediction mechanisms
+- Hardware Verification and Testbench development
+- EDA Toolchain
+- Hierarchical Design methodology
+- Git-based collaborative development
+- Performance Analysis and Optimization
+
+From a soft-skills perspective, this project allowed me to improve on:
+- Teamwork
+- Problem Solving
+- Leadership
+- Efficient organization 
 
 ---
 
