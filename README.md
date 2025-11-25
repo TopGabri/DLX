@@ -96,6 +96,8 @@ This project provided extensive hands-on experience in digital design, processor
 - VHDL language
 - RISC Architectures
 - Branch Prediction mechanisms
+- Data Dependencies
+- Cache and Memory System design
 - Hardware Verification and Testbench development
 - EDA Toolchain
 - Hierarchical Design methodology
