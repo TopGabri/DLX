@@ -69,6 +69,7 @@ architecture TBARCH of DLX_TB is
 
 begin
 
+	-- PROCESSOR
     UUT : DLX port map(
         Clk           => Clk,
         Rst           => Rst,
@@ -81,6 +82,7 @@ begin
 		DATA_FROM_DM  => DATA_FROM_DM
     );
 
+	-- INSTRUCTION MEMORY
     IM : IRAM generic map(
         I_MEM_DEPTH    => I_MEM_DEPTH,
         I_SIZE         => INSTRUCTION_WIDTH,
@@ -93,7 +95,7 @@ begin
         Dout => INSTR_MEM_OUT
     );
 
-    -- DATA_MEMORY    
+    -- DATA MEMORY    
     DM : DATA_MEMORY generic map(
         FILE_PATH      => "./memory_files/data_mem.mem",
         FILE_PATH_INIT => "./memory_files/data_mem_init.mem",
