@@ -23,6 +23,7 @@ All components — except for a few partially written files provided by the prof
 * **(Siemens) QuestaSim** to test VHDL code
 * **(Synopsys) Design Vision** for the **synthesis** and **optimization**
 * **(Cadence) Innovus** to perform **physical design**
+* **Diagrams.net** for all the schematics
 ---
 
 ## 🏆 Results achieved
@@ -57,9 +58,17 @@ After months of ideas, sketches, studying, wrong turns, right turns, endless sim
 
 ## 📂 Deliverables
 
-You can check the **source code** in the <a href="./src">`src`</a> folder, and the **testbenches** in <a href="./testbench">`testbench`</a>. In <a href="./figures" >`figures`</a>, <a href="./figures/DLX-scheme-simpl.pdf" >`DLX-scheme-simpl.pdf`</a> shows a simplified schematic view of the processor, while <a href="./figures/DLX-scheme.pdf" >`DLX-scheme.pdf`</a> depicts the full **schematic** (download it for better quality); <a href="./figures/ALU-scheme.pdf">`ALU-scheme.pdf`</a> shows the internal logic of the ALU. The full project **documentation** can be viewed in <a href="./Report.pdf">`Report.pdf`</a>.</br> 
-In the <a href="./synthesis">`synthesis`</a> folder you can find the **scripts** used for synthesizing the processor with _Design Vision_, along with the synthesis **reports**, **netlist** and main **schematics**. </br>
-Finally, here's the physical layout of our processor:
+Here I describe and link the main deliverables of this project that are found in this repository:
+- The full **VHDL** **source code** is in the <a href="./src">`src`</a> folder.
+- All the **testbenches** used for simulation are in the <a href="./testbench">`testbench`</a> folder.
+- In <a href="./figures" >`figures`</a>, you can see the main **schematics** and block representations of the processor. In particular:
+  -  <a href="./figures/DLX-block.pdf" >`DLX-block.pdf`</a> shows the block symbol of the DLX processor. We notice the `Clk` and `Rst` input ports, and the ports implementing the interface with Instruction and Data **Memories**.
+  -  <a href="./figures/DLX-scheme-simpl.pdf" >`DLX-scheme-simpl.pdf`</a> shows a simplified schematic view of the Datapath, highlighting the Pipeline stages.
+  -  <a href="./figures/DLX-scheme.pdf" >`DLX-scheme.pdf`</a> depicts the full processor **schematic** (download it for better quality), clearly showing the intricate connection between **Datapath** and **Control Unit**. Notice that, even though the **Instruction Memory** and **Data Memory** modules are represented here (as in the simplified view) for completeness, we recall that they are external with respect to the processor. Moreover, **Pipeline Registers Enable Signals** are not shown for simplicity, but they are a fundamental piece of control signals that enable pipeline stalls and flushes.
+  - <a href="./figures/ALU-scheme.pdf">`ALU-scheme.pdf`</a> shows the internal logic of the ALU.
+- The full project **documentation** can be read in <a href="./Report.pdf">`Report.pdf`</a>. 
+- In the <a href="./synthesis">`synthesis`</a> folder you can find the **scripts** used for synthesizing the processor with _Design Vision_, along with the synthesis **reports**, **netlist** and main **schematics**.
+- Finally, here's the _placed & routed_ **physical layout** of our processor:
 
 <p align="center">
   <img src="./figures/physical_layout.png" width="450">
@@ -82,14 +91,16 @@ The design followed a **hierarchical approach**, building the processor **bottom
 Each module was verified through a dedicated **testbench**, forming a **chain of tested components** that enabled reliable verification of higher level components.
 
 To validate the complete processor, we executed **assembly programs (`.asm`)** compiled with an assembler provided by the professors (therefore omitted in this repository).
-A **bash script** automates the execution of the assembler on the specified `.asm` program and the loading of the generated machine code into two separate files, namely `instr_mem_init.mem` for `.text` segment and `data_mem_init.mem` for `.data` segment. 
+A **bash script** automates the execution of the assembler on the specified `.asm` program and the loading of the generated machine code into two separate files, namely `instr_mem_init.mem` for `.text` segment and `data_mem_init.mem` for `.data` segment. </br>
+
+The <a href="./testbench/TB_dlx.vhd" >`TB_dlx.vhd`</a> testbench is the one allowing the simulation of the whole system. It instantiates the **processor** and **memory** components and connects them through their interface, and it specifies the correct file paths for memory **initialization** and **logging**. The schematic of this testbench is shown in <a href="./figures/TB_dlx.pdf" >`TB_dlx.pdf`</a>. 
 
 During simulation:
 * Upon **Reset**, **Instruction Memory** and **Data Memory** are loaded with the executable code and data from the respective `.mem` initialization files
 * The sequence of instructions loaded into the Instruction Memory is executed 
 * The **Register File**, **Data Cache** and **Data Memory** automatically write their contents to output files.
 
-At the end of the simulation, we can inspect the produced files to verify correctness and ensure that program execution matched expected behavior. If any incorrectness is detected, white box testing can be performed by looking at the internal **waveforms** of the system. 
+At the end of the simulation, we can inspect the produced files to verify correctness and ensure that program execution matched expected behavior. If any incorrectness is detected, white box testing can be performed by looking at the internal **waveforms** of the system.
 
 ---
 
