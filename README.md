@@ -58,7 +58,12 @@ After months of ideas, sketches, studying, wrong turns, right turns, endless sim
 ## 📂 Deliverables
 
 You can check the **source code** in the <a href="./src">`src`</a> folder, and the **testbenches** in <a href="./testbench">`testbench`</a>. In <a href="./figures" >`figures`</a>, <a href="./figures/DLX-scheme-simpl.pdf" >`DLX-scheme-simpl.pdf`</a> shows a simplified schematic view of the processor, while <a href="./figures/DLX-scheme.pdf" >`DLX-scheme.pdf`</a> depicts the full **schematic** (download it for better quality); <a href="./figures/ALU-scheme.pdf">`ALU-scheme.pdf`</a> shows the internal logic of the ALU. The full project **documentation** can be viewed in <a href="./Report.pdf">`Report.pdf`</a>.</br> 
-In the <a href="./synthesis">`synthesis`</a> folder you can find the **scripts** used for synthesizing the processor with _Design Vision_, along with the synthesis **reports**, **netlist** and main **schematics**. 
+In the <a href="./synthesis">`synthesis`</a> folder you can find the **scripts** used for synthesizing the processor with _Design Vision_, along with the synthesis **reports**, **netlist** and main **schematics**. </br>
+Finally, here's the physical layout of our processor:
+
+<p align="center">
+  <img src="./figures/physical_layout.png" width="450">
+</p>
 
 ---
 
@@ -90,7 +95,7 @@ At the end of the simulation, we can inspect the produced files to verify correc
 
 ## 📈 Skills and Experience Gained
 
-This project provided extensive hands-on experience in digital design, processor microarchitecture, and EDA tools. In particular, it provided me with **experience** and **skills** in the following areas:
+This project provided extensive hands-on experience in digital design, processor microarchitecture, and EDA tools. In particular, it provided me with **experience** and technical **skills** in the following areas:
 
 - Digital Hardware Design
 - VHDL language
@@ -104,11 +109,11 @@ This project provided extensive hands-on experience in digital design, processor
 - Git-based collaborative development
 - Performance Analysis and Optimization
 
-Moreover, this project allowed me to improve on the following **soft** skills:
+Moreover, this project allowed me to improve on other important skills such as:
 - Teamwork
 - Problem Solving
-- Leadership
-- Efficient organization 
+- Leadership and team management
+- Efficient organization
 
 ---
 
@@ -118,3 +123,9 @@ Moreover, this project allowed me to improve on the following **soft** skills:
 * Implement a **windowed register file** for **multi-threading**
 * Implement **exception handling**
 * Optimize the design for **power** and **performance**
+
+---
+
+##  🫱🏻‍🫲🏻 Acknowledgments 
+
+I'd like to thank my colleagues **Stefano Galati** and **Emanuele Aquilia** for an amazing work performed during this project. I'd also like to thank the professor and teaching assistants of the **Microelectronic Systems** course for the material and knowledge provided. Finally and most importantly, a big acknowledgment goes to **John L. Hennessy** and **David A. Patterson**, the creators of the DLX Architecture and authors of the book **Computer Architecture: A Quantitative Approach**, which has been of incredible use and provided us with the main Processor Architecture concepts that most of the project is based upon. 
