@@ -96,11 +96,13 @@ A **bash script** automates the execution of the assembler on the specified `.as
 The <a href="./testbench/TB_dlx.vhd" >`TB_dlx.vhd`</a> testbench is the one allowing the simulation of the whole system. It instantiates the **processor** and **memory** components and connects them through their interface, and it specifies the correct file paths for memory **initialization** and **logging**. The schematic of this testbench is shown in <a href="./figures/TB_dlx.pdf" >`TB_dlx.pdf`</a>. 
 
 During simulation:
-* Upon **Reset**, **Instruction Memory** and **Data Memory** are loaded with the executable code and data from the respective `.mem` initialization files
-* The sequence of instructions loaded into the Instruction Memory is executed 
-* The **Register File**, **Data Cache** and **Data Memory** automatically write their contents to output files.
-
+* When the `Rst` signal is asserted, **Instruction Memory** and **Data Memory** are loaded with the executable code and data from the respective `.mem` initialization files.
+* After `Rst` is disabled, the sequence of instructions loaded into the Instruction Memory starts to be executed. 
+* Everytime they are updated, the **Register File**, **Data Cache** and **Data Memory** automatically log their contents to their respective output files, namely `reg_file.mem`, `data_cache.mem` and `data_mem.mem`.
+ 
 At the end of the simulation, we can inspect the produced files to verify correctness and ensure that program execution matched expected behavior. If any incorrectness is detected, white box testing can be performed by looking at the internal **waveforms** of the system.
+
+**NOTICE**: the files in this repository alone are not enough to perform the simulation descrbied above, as we would need the **assembler** program, omitted for copyright reasons. 
 
 ---
 
