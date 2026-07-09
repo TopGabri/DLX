@@ -133,6 +133,7 @@ Moreover, this project allowed me to improve on other important skills such as:
 ## 🏹 Possible improvements
 
 * Implement multicycle operations: **multiplication** and **division**
+* Make it **Out of Order** 
 * Implement a **windowed register file** for **multi-threading**
 * Implement **exception handling**
 * Optimize the design for **power** and **performance**
